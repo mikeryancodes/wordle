@@ -74,10 +74,7 @@ function App() {
     if (guesses.length === 0) return;
     const isCorrect = l => l.classification === CLASSIFICATIONS.IN_WORD_RIGHT_PLACE;
     if (guesses[guesses.length - 1].every(isCorrect)) return setWon(true);
-    if (guesses.length === 6) {
-      console.log({ guesses });
-      return setLost(true);
-    }
+    if (guesses.length === 6) return setLost(true);
   }, [guesses]);
 
   useEffect(() => {
@@ -112,7 +109,6 @@ function App() {
 
 function GuessChart({ guesses, currentGuess }) {
   const chart = getChart(guesses, currentGuess);
-  console.log(`**** chart: `, { chart })
   return (<div className="guess-chart">{chart.map(g => <Guess guess={g} />)}</div>);
 }
 
@@ -223,10 +219,12 @@ function getBlankGuess() {
 }
 
 function getUpdatedRecord(record, scoredGuess) {
-  const updates = scoredGuess
-    .filter(l => !record[l.letter] || RANKED_CLASSIFICATIONS[l.classification] > RANKED_CLASSIFICATIONS[record[l.letter]])
-    .map(l => ({ [l.letter]: l.classification }));
-  return Object.assign({}, record, ...updates);
+  const result = { ...record };
+  scoredGuess.forEach(l => {
+    if (result[l.letter] && RANKED_CLASSIFICATIONS[l.classification] <= RANKED_CLASSIFICATIONS[result[l.letter]]) return;
+    result[l.letter] = l.classification
+  });
+  return result;
 }
 
 function toClassName(classification) {
